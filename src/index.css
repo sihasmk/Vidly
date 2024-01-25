@@ -8,6 +8,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.form-button {
+  margin-top: 10px;
+}
+
+.add-movie {
+  margin-bottom: 10px;
+}
+
 .navbar {
   margin-bottom: 30px;
 }

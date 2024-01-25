@@ -1,7 +1,5 @@
 import React, { Component } from "react";
 import _ from "lodash";
-import { element } from "prop-types";
-// columns
 
 class TableBody extends Component {
   renderCell = (element, column) => {

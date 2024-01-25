@@ -1,11 +1,21 @@
 import React, { Component } from "react";
-import { getMovies } from "../services/fakeMovieService";
-import Pagination from "./common/pagination";
-import { paginate } from "../utils/paginate";
-import ListGroup from "./common/listGroup";
-import { getGenres } from "../services/fakeGenreService";
 import MoviesTable from "./moviesTable";
+import Pagination from "./common/pagination";
+import ListGroup from "./common/listGroup";
+import { paginate } from "../utils/paginate";
+import { getMovies } from "../services/fakeMovieService";
+import { getGenres } from "../services/fakeGenreService";
+import { useNavigate, Link } from "react-router-dom";
 import _ from "lodash";
+import Input from "./common/input";
+import SearchBox from "./common/searchBox";
+
+function withHooks(WrappedComponent) {
+  return function (props) {
+    const navigate = useNavigate();
+    return <WrappedComponent {...props} navigate={navigate} />;
+  };
+}
 
 class Movies extends Component {
   state = {
@@ -15,6 +25,7 @@ class Movies extends Component {
     currentPage: 1,
     selectedGenre: "All Genres",
     sortColumn: { path: "title", order: "asc" },
+    searchQuery: "",
   };
 
   componentDidMount() {
@@ -45,12 +56,38 @@ class Movies extends Component {
   };
 
   handleGenreSelect = (genreName) => {
-    this.setState({ selectedGenre: genreName, currentPage: 1 });
+    this.setState({
+      selectedGenre: genreName,
+      searchQuery: "",
+      currentPage: 1,
+    });
+  };
+
+  handleSearch = (query) => {
+    this.setState({
+      searchQuery: query,
+      selectedGenre: "All Genres",
+      currentPage: 1,
+    });
   };
 
   handleSort = (sortColumn) => {
     this.setState({ sortColumn });
   };
+
+  generateMovieCountMessage(count) {
+    const { searchQuery } = this.state;
+    if (count === 0 && !searchQuery)
+      return <h3>There are no movies in the database</h3>;
+    else if (count === 0 && searchQuery) return <h3>No results found</h3>;
+    else {
+      return (
+        <h3>
+          Showing {count} movie{count === 1 ? "" : "s"} in the database:{" "}
+        </h3>
+      );
+    }
+  }
 
   getPagedData = () => {
     const {
@@ -59,6 +96,7 @@ class Movies extends Component {
       movies: allMovies,
       selectedGenre,
       sortColumn,
+      searchQuery,
     } = this.state;
 
     let filtered_movies = [...allMovies];
@@ -66,6 +104,12 @@ class Movies extends Component {
     if (selectedGenre !== "All Genres") {
       filtered_movies = filtered_movies.filter(
         (m) => m.genre.name === selectedGenre
+      );
+    }
+
+    if (searchQuery) {
+      filtered_movies = filtered_movies.filter((m) =>
+        m.title.toLowerCase().startsWith(searchQuery.toLowerCase())
       );
     }
 
@@ -87,22 +131,6 @@ class Movies extends Component {
 
     const { totalCount, data: movies } = this.getPagedData();
 
-    if (totalCount === 0)
-      return (
-        <div className="row">
-          <div className="col-3">
-            <ListGroup
-              items={this.state.genres}
-              onItemSelect={this.handleGenreSelect}
-              selectedItem={this.state.selectedGenre}
-            ></ListGroup>
-          </div>
-          <div className="col">
-            <h3>There are no movies in the database</h3>
-          </div>
-        </div>
-      );
-
     return (
       <div className="row">
         <div className="col-2">
@@ -113,10 +141,15 @@ class Movies extends Component {
           ></ListGroup>
         </div>
         <div className="col">
-          <h3>
-            Showing {totalCount} movie{totalCount === 1 ? "" : "s"} in the
-            database:{" "}
-          </h3>
+          <Link
+            to="/movies/new"
+            className="btn btn-primary"
+            style={{ marginBottom: 10 }}
+          >
+            New Movie
+          </Link>
+          {this.generateMovieCountMessage(totalCount)}
+          <SearchBox onChange={this.handleSearch} />
           <MoviesTable
             movies={movies}
             onLikeClick={this.handleLikeClick}
@@ -136,4 +169,4 @@ class Movies extends Component {
   }
 }
 
-export default Movies;
+export default withHooks(Movies);
