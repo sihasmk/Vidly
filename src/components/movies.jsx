@@ -3,11 +3,11 @@ import MoviesTable from "./moviesTable";
 import Pagination from "./common/pagination";
 import ListGroup from "./common/listGroup";
 import { paginate } from "../utils/paginate";
-import { getMovies } from "../services/fakeMovieService";
-import { getGenres } from "../services/fakeGenreService";
+import { deleteMovie, getMovies } from "../services/movieService";
+import { getGenres } from "../services/genreService";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import _ from "lodash";
-import Input from "./common/input";
 import SearchBox from "./common/searchBox";
 
 function withHooks(WrappedComponent) {
@@ -28,18 +28,28 @@ class Movies extends Component {
     searchQuery: "",
   };
 
-  componentDidMount() {
-    const genres = [{ _id: "", name: "All Genres" }, ...getGenres()];
+  async componentDidMount() {
+    const genres = [{ _id: "", name: "All Genres" }, ...(await getGenres())];
 
-    this.setState({ movies: getMovies(), genres });
+    this.setState({ movies: await getMovies(), genres });
   }
 
-  handleDelete = (movie, moviesOnCurrentPage) => {
-    const movies = [...this.state.movies].filter((m) => m !== movie);
+  handleDelete = async (movie, moviesOnCurrentPage) => {
+    const originalMovies = this.state.movies;
+    const movies = originalMovies.filter((m) => m._id !== movie._id);
 
     if (moviesOnCurrentPage.length === 1)
       this.setState({ movies, currentPage: this.state.currentPage - 1 });
     else this.setState({ movies });
+
+    try {
+      await deleteMovie(movie._id);
+    } catch (ex) {
+      if (ex.response && ex.response.status === 404)
+        toast.error("This movie has already been deleted");
+
+      this.setState({ movies: originalMovies });
+    }
   };
 
   handleLikeClick = (movie) => {
@@ -109,7 +119,7 @@ class Movies extends Component {
 
     if (searchQuery) {
       filtered_movies = filtered_movies.filter((m) =>
-        m.title.toLowerCase().startsWith(searchQuery.toLowerCase())
+        m.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
