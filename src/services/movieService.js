@@ -1,12 +1,14 @@
 import http from "./httpService";
 import config from "../config.json";
 
+const apiEndpoint = `${config.apiUrl}/movies`;
+
 function movieURL(id) {
-  return `${config.apiEndpoint}/movies/${id}`;
+  return `${apiEndpoint}/${id}`;
 }
 
 export async function getMovies() {
-  const { data: movies } = await http.get(`${config.apiEndpoint}/movies`);
+  const { data: movies } = await http.get(apiEndpoint);
   return movies;
 }
 
@@ -22,7 +24,7 @@ export async function getMovie(id) {
 
 export async function saveMovie(movie) {
   const { _id, ...movieNoId } = movie;
-  var exists = new Boolean(true);
+  var exists = true;
   try {
     await http.get(movieURL(_id));
   } catch (ex) {
@@ -39,7 +41,7 @@ export async function saveMovie(movie) {
     }
   } else {
     try {
-      await http.post(`${config.apiEndpoint}/movies`, movieNoId);
+      await http.post(apiEndpoint, movieNoId);
     } catch (ex) {
       console.error("Error adding new movie:", ex);
     }

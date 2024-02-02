@@ -3,19 +3,14 @@ import MoviesTable from "./moviesTable";
 import Pagination from "./common/pagination";
 import ListGroup from "./common/listGroup";
 import { paginate } from "../utils/paginate";
+import * as auth from "../services/authService";
 import { deleteMovie, getMovies } from "../services/movieService";
 import { getGenres } from "../services/genreService";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { withHooks } from "./common/withHooks";
 import { toast } from "react-toastify";
 import _ from "lodash";
 import SearchBox from "./common/searchBox";
-
-function withHooks(WrappedComponent) {
-  return function (props) {
-    const navigate = useNavigate();
-    return <WrappedComponent {...props} navigate={navigate} />;
-  };
-}
 
 class Movies extends Component {
   state = {
@@ -138,6 +133,7 @@ class Movies extends Component {
 
   render() {
     const { pageSize, currentPage, sortColumn } = this.state;
+    const user = auth.getCurrentUser();
 
     const { totalCount, data: movies } = this.getPagedData();
 
@@ -151,13 +147,15 @@ class Movies extends Component {
           ></ListGroup>
         </div>
         <div className="col">
-          <Link
-            to="/movies/new"
-            className="btn btn-primary"
-            style={{ marginBottom: 10 }}
-          >
-            New Movie
-          </Link>
+          {user && (
+            <Link
+              to="/movies/new"
+              className="btn btn-primary"
+              style={{ marginBottom: 10 }}
+            >
+              New Movie
+            </Link>
+          )}
           {this.generateMovieCountMessage(totalCount)}
           <SearchBox onChange={this.handleSearch} />
           <MoviesTable
@@ -166,6 +164,7 @@ class Movies extends Component {
             onDelete={this.handleDelete}
             onSort={this.handleSort}
             sortColumn={sortColumn}
+            user={this.props.user}
           ></MoviesTable>
           <Pagination
             itemsCount={totalCount}

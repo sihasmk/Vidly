@@ -1,4 +1,4 @@
 {
-    "apiEndpoint" : "http://localhost:3900/api",
+    "apiUrl" : "http://localhost:3900/api",
     "simulateErr404" : "https://httpbin.org/status/404"
 }

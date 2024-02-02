@@ -1,19 +1,9 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import Joi from "joi-browser";
 import Form from "./common/form";
 import { getMovie, saveMovie } from "../services/movieService";
 import { getGenres } from "../services/genreService";
-
-function withHooks(WrappedComponent) {
-  return function (props) {
-    const navigate = useNavigate();
-    const params = useParams();
-    return (
-      <WrappedComponent {...props} navigate={navigate} match={{ params }} />
-    );
-  };
-}
+import { withHooks } from "./common/withHooks";
 
 class MovieForm extends Form {
   state = {
